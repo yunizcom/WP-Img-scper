@@ -34,10 +34,12 @@ import android.view.Display;
 import android.view.Menu;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -58,6 +60,8 @@ public class MainActivity extends Activity {
 	private LinearLayout loadPosts;
 	
 	private String currentURL,pageCodes;
+	
+	private WebView webView;
 	
 	Timer WFT = new Timer();
 	
@@ -165,7 +169,7 @@ public class MainActivity extends Activity {
 	
 	public void getPhotos(String rawSource){
 		String[] stringSpliter,processStr,processStr2,processStr3;
-		ArrayList<String> titles = new ArrayList<String>(),urls = new ArrayList<String>(),tempImages = new ArrayList<String>(),tempImagesOut = new ArrayList<String>();
+		ArrayList<String> titles = new ArrayList<String>(),urls = new ArrayList<String>(),dates = new ArrayList<String>(),tempImages = new ArrayList<String>(),tempImagesOut = new ArrayList<String>();
 		ArrayList<ArrayList<String>> imagesGroup = new ArrayList<ArrayList<String>>();
 		
 		stringSpliter = rawSource.split("\"entry-title\"");
@@ -181,9 +185,14 @@ public class MainActivity extends Activity {
 			processStr = processStr[1].split("\"");
 			urls.add(processStr[0].toString());
 			
+			// process with dates
+			processStr = stringSpliter[a].split("entry-date\">");
+			processStr = processStr[1].split("</");
+			dates.add(processStr[0].toString());
+			
 			// process with images
 			processStr3 = stringSpliter[a].split("<div class=\"entry-meta\">");
-			processStr = processStr3[0].split("<img src=\"");
+			processStr = processStr3[0].split("src=\"");
 			tempImages = new ArrayList<String>();
 			for(int b=1;b<processStr.length;b++){
 				processStr2 = processStr[b].split("\"");
@@ -191,29 +200,36 @@ public class MainActivity extends Activity {
 			}
 			imagesGroup.add(tempImages);
 		}
+
+		//--------------------generate the contents for user-----------------------
 		
-		TextView postTitle=new TextView(this);
+		/*TextView postTitle=new TextView(this);
 		TextView postLink=new TextView(this);
 		ImageView postImage=new ImageView(this);
 		loadPosts.removeAllViewsInLayout();
-		Bitmap bitmap = null;
+		Bitmap bitmap = null;*/
+		String postBGColor = "#ffffff";
+		String webViewHTMLs = "<html><head><title>Blog Images Only - Yuniz.com</title><style>.img{border:0px;}</style></head><body style=\"margin:0px;padding:0px;\">";
 		
 		for(int a=0;a<titles.size();a++){
 			//Log.v("debug",titles.get(a) + "|" + urls.get(a) + "|" + imagesGroup.get(a).size());
 			
-			postTitle=new TextView(this);
+			/*postTitle=new TextView(this);
 			postTitle.setText(titles.get(a));
-			postTitle.setTextSize(14);
+			postTitle.setTextSize(16);
 			postTitle.setTextColor(Color.parseColor("#ffffff"));
 			postTitle.setBackgroundColor(Color.parseColor("#333333"));
 			postTitle.setPadding(5, 5, 5, 5);
-			loadPosts.addView(postTitle);
+			loadPosts.addView(postTitle);*/
+			
+			webViewHTMLs += "<div style=\"font-size:20px;font-weight:bold;color:#ffffff;background-color:#333333;padding:5px;\">" + titles.get(a) + "</div>";
+			webViewHTMLs += "<div style=\"font-size:16px;color:#ffffff;background-color:#333333;padding:5px;\">" + dates.get(a) + "</div>";
 			
 			tempImagesOut = imagesGroup.get(a);
 			for(int b=0;b<tempImagesOut.size();b++){
 				//Log.v("--debug",tempImagesOut.get(b));
 				
-				try {
+				/*try {
 					bitmap = BitmapFactory.decodeStream((InputStream)new URL(tempImagesOut.get(b)).getContent());
 				} catch (MalformedURLException e) {
 					// TODO Auto-generated catch block
@@ -221,23 +237,45 @@ public class MainActivity extends Activity {
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}
+				}*/
 				
-				postImage=new ImageView(this);
+				if(b % 2 == 0){
+					postBGColor = "#ffffff";
+				}else{
+					postBGColor = "#f2f2f2";
+				}
+
+				/*postImage=new ImageView(this);
 				postImage.setImageBitmap(bitmap);
 				postImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
-				postImage.setBackgroundColor(Color.parseColor("#ffffff"));
+				postImage.setBackgroundColor(Color.parseColor(postBGColor));
 				postImage.setPadding(5, 5, 5, 5);
-				loadPosts.addView(postImage);
+				loadPosts.addView(postImage,new LinearLayout.LayoutParams( 
+			            LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));*/
+				
+				webViewHTMLs += "<div style=\"background-color:" + postBGColor + ";padding:5px;\"><img src=\"" + tempImagesOut.get(b) + "\" width=\"100%\"></div>";
 			}
+			/*bitmap.recycle();
+			Runtime.getRuntime().gc();
 			
 			postTitle=new TextView(this);
 			postTitle.setTextSize(14);
 			postTitle.setPadding(5, 5, 5, 5);
 			postTitle.setTextColor(Color.parseColor("#ffffff"));
 			postTitle.setBackgroundColor(Color.parseColor("#cccccc"));
-			loadPosts.addView(postTitle);
+			loadPosts.addView(postTitle);*/
+			
+			webViewHTMLs += "<div style=\"font-size:16px;font-weight:bold;color:#ffffff;background-color:#000000;padding:5px;\">&nbsp;&nbsp;&nbsp;</div>";
 		}
+		
+		webViewHTMLs += "</body></html>";
+		
+		WebView contentWebView=new WebView(this);
+		contentWebView.setPadding(5, 5, 5, 5);
+		contentWebView.loadData(webViewHTMLs, "text/html", "UTF-8");
+		contentWebView.getSettings().setSupportZoom(false);
+		loadPosts.addView(contentWebView,new LinearLayout.LayoutParams( 
+	            LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 		
 		loader.setVisibility(View.INVISIBLE);
 		loadBoard.setVisibility(View.VISIBLE);
