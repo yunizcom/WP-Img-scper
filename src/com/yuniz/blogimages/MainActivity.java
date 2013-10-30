@@ -7,6 +7,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -34,6 +36,7 @@ import android.view.Display;
 import android.view.Menu;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.WebSettings.LayoutAlgorithm;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -172,33 +175,72 @@ public class MainActivity extends Activity {
 		ArrayList<String> titles = new ArrayList<String>(),urls = new ArrayList<String>(),dates = new ArrayList<String>(),tempImages = new ArrayList<String>(),tempImagesOut = new ArrayList<String>();
 		ArrayList<ArrayList<String>> imagesGroup = new ArrayList<ArrayList<String>>();
 		
-		stringSpliter = rawSource.split("\"entry-title\"");
+		stringSpliter = rawSource.split("entry-title\"");
 		
-		for(int a=1;a<stringSpliter.length;a++){
-			// process with titles
-			processStr = stringSpliter[a].split("\">");
-			processStr = processStr[1].split("</a>");
-			titles.add(processStr[0].toString());
-			
-			// process with urls
-			processStr = stringSpliter[a].split("<a href=\"");
-			processStr = processStr[1].split("\"");
-			urls.add(processStr[0].toString());
-			
-			// process with dates
-			processStr = stringSpliter[a].split("entry-date\">");
-			processStr = processStr[1].split("</");
-			dates.add(processStr[0].toString());
-			
-			// process with images
-			processStr3 = stringSpliter[a].split("<div class=\"entry-meta\">");
-			processStr = processStr3[0].split("src=\"");
-			tempImages = new ArrayList<String>();
-			for(int b=1;b<processStr.length;b++){
-				processStr2 = processStr[b].split("\"");
-				tempImages.add(processStr2[0].toString());
+		if(stringSpliter.length>1){
+		
+			for(int a=1;a<stringSpliter.length;a++){
+				// process with titles
+				processStr = stringSpliter[a].split("\">");
+				processStr = processStr[1].split("</a>");
+				titles.add(processStr[0].toString());
+				
+				// process with urls
+				processStr = stringSpliter[a].split("<a href=\"");
+				processStr = processStr[1].split("\"");
+				urls.add(processStr[0].toString());
+	
+				// process with dates
+				processStr = stringSpliter[a].split("entry-date\">");
+				if(processStr.length>1){
+					processStr = processStr[1].split("</");
+					dates.add(processStr[0].toString());
+				}
+				
+				// process with images
+				processStr3 = stringSpliter[a].split("<div class=\"entry-meta\">");
+				processStr = processStr3[0].split("src=\"");
+				tempImages = new ArrayList<String>();
+				for(int b=1;b<processStr.length;b++){
+					processStr2 = processStr[b].split("\"");
+					tempImages.add(processStr2[0].toString());
+				}
+				imagesGroup.add(tempImages);
 			}
-			imagesGroup.add(tempImages);
+		
+		}else{
+		
+			stringSpliter = rawSource.split("entry-title'");
+			
+			for(int a=1;a<stringSpliter.length;a++){
+				// process with titles
+				processStr = stringSpliter[a].split("'>");
+				processStr = processStr[1].split("</a>");
+				titles.add(processStr[0].toString());
+				
+				// process with urls
+				processStr = stringSpliter[a].split("<a href='");
+				processStr = processStr[1].split("'");
+				urls.add(processStr[0].toString());
+	
+				// process with dates
+				processStr = stringSpliter[a].split("entry-date'>");
+				if(processStr.length>1){
+					processStr = processStr[1].split("</");
+					dates.add(processStr[0].toString());
+				}
+				
+				// process with images
+				processStr3 = stringSpliter[a].split("<div class='entry-meta'>");
+				processStr = processStr3[0].split("src=\"");
+				tempImages = new ArrayList<String>();
+				for(int b=1;b<processStr.length;b++){
+					processStr2 = processStr[b].split("\"");
+					tempImages.add(processStr2[0].toString());
+				}
+				imagesGroup.add(tempImages);
+			}
+			
 		}
 
 		//--------------------generate the contents for user-----------------------
@@ -223,7 +265,9 @@ public class MainActivity extends Activity {
 			loadPosts.addView(postTitle);*/
 			
 			webViewHTMLs += "<div style=\"font-size:20px;font-weight:bold;color:#ffffff;background-color:#333333;padding:5px;\">" + titles.get(a) + "</div>";
-			webViewHTMLs += "<div style=\"font-size:16px;color:#ffffff;background-color:#333333;padding:5px;\">" + dates.get(a) + "</div>";
+			if(dates.size() > 0){
+				webViewHTMLs += "<div style=\"font-size:16px;color:#ffffff;background-color:#333333;padding:5px;\">" + dates.get(a) + "</div>";
+			}
 			
 			tempImagesOut = imagesGroup.get(a);
 			for(int b=0;b<tempImagesOut.size();b++){
@@ -253,7 +297,9 @@ public class MainActivity extends Activity {
 				loadPosts.addView(postImage,new LinearLayout.LayoutParams( 
 			            LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));*/
 				
-				webViewHTMLs += "<div style=\"background-color:" + postBGColor + ";padding:5px;\"><img src=\"" + tempImagesOut.get(b) + "\" width=\"100%\"></div>";
+				if(isImageFormat(tempImagesOut.get(b))){
+					webViewHTMLs += "<div style=\"background-color:" + postBGColor + ";padding:5px;\"><img src=\"" + tempImagesOut.get(b) + "\"></div>";
+				}
 			}
 			/*bitmap.recycle();
 			Runtime.getRuntime().gc();
@@ -269,16 +315,72 @@ public class MainActivity extends Activity {
 		}
 		
 		webViewHTMLs += "</body></html>";
-		
+	
 		WebView contentWebView=new WebView(this);
 		contentWebView.setPadding(5, 5, 5, 5);
 		contentWebView.loadData(webViewHTMLs, "text/html", "UTF-8");
 		contentWebView.getSettings().setSupportZoom(false);
+		contentWebView.getSettings().setLayoutAlgorithm(LayoutAlgorithm.SINGLE_COLUMN);
+		contentWebView.setBackgroundColor(Color.parseColor("#000000"));
 		loadPosts.addView(contentWebView,new LinearLayout.LayoutParams( 
 	            LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 		
 		loader.setVisibility(View.INVISIBLE);
 		loadBoard.setVisibility(View.VISIBLE);
+	}
+	
+	public boolean isImageFormat(String filename){
+		boolean isImage = false;
+		
+		String[] filenameSplit;
+		filenameSplit = filename.split(".jpg");
+		if(filenameSplit.length > 1){
+			isImage = true;
+		}else{
+			filenameSplit = filename.split(".jpeg");
+			if(filenameSplit.length > 1){
+				isImage = true;
+			}else{
+				filenameSplit = filename.split(".gif");
+				if(filenameSplit.length > 1){
+					isImage = true;
+				}else{
+					filenameSplit = filename.split(".png");
+					if(filenameSplit.length > 1){
+						isImage = true;
+					}
+				}
+			}
+		}
+
+		return isImage;
+	}
+	
+	public String cleanImageFile(String filename){
+		String cleanImageFile = filename;
+		
+		String[] filenameSplit;
+		filenameSplit = filename.split(".jpg");
+		if(filenameSplit.length > 1){
+			cleanImageFile = filenameSplit[0] + ".jpg";
+		}else{
+			filenameSplit = filename.split(".jpeg");
+			if(filenameSplit.length > 1){
+				cleanImageFile = filenameSplit[0] + ".jpeg";
+			}else{
+				filenameSplit = filename.split(".gif");
+				if(filenameSplit.length > 1){
+					cleanImageFile = filenameSplit[0] + "gif";
+				}else{
+					filenameSplit = filename.split(".png");
+					if(filenameSplit.length > 1){
+						cleanImageFile = filenameSplit[0] + ".png";
+					}
+				}
+			}
+		}
+
+		return cleanImageFile;
 	}
 	
 	public void setScanLoadWFT() {

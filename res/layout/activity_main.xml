@@ -45,7 +45,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="12"
-                android:text="http://gutteruncensored.info/"
+                android:text="http://bookofash.wordpress.com/"
                 android:hint="http://www.myblog.com"
                 android:paddingTop="10dp" >
 
