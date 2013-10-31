@@ -32,6 +32,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
@@ -57,7 +58,8 @@ public class MainActivity extends Activity {
 	
 	private EditText urlAddress;
 	private TextView statusTxt;
-	private RelativeLayout loader,loadBoard,mainMenu;
+	private RelativeLayout loader,loadBoard,mainMenu,mainBg;
+	private ImageView imageView1;
 	
 	private Button button2;
 	private Button button3;
@@ -110,11 +112,35 @@ public class MainActivity extends Activity {
 		loadBoard = (RelativeLayout) findViewById(R.id.loadBoard);
 		mainMenu = (RelativeLayout) findViewById(R.id.mainMenu);
 		
+		mainBg = (RelativeLayout) findViewById(R.id.mainBg);
+		
+		imageView1 = (ImageView) findViewById(R.id.imageView1);
+		
 		button2 = (Button) findViewById(R.id.button2);
 		button3 = (Button) findViewById(R.id.button3);
 		button4 = (Button) findViewById(R.id.button4);
 		
 		loadPosts = (LinearLayout) findViewById(R.id.loadPosts);
+		
+		try 
+		{
+		    InputStream ims = getAssets().open("bg.jpg");
+		    Drawable d = Drawable.createFromStream(ims, null);
+
+		    if(sdk < android.os.Build.VERSION_CODES.JELLY_BEAN) {
+		    	mainBg.setBackgroundDrawable(d);
+		    } else {
+		    	mainBg.setBackground(d);
+		    }
+		    
+		    InputStream ims1 = getAssets().open("logo.png");
+		    Drawable d1 = Drawable.createFromStream(ims1, null);
+		    imageView1.setImageDrawable(d1);
+		}
+		catch(IOException ex) 
+		{
+		    return;
+		}
 		
 		button3.setText("< Previous");
 		button4.setText("Next >");
@@ -175,13 +201,78 @@ public class MainActivity extends Activity {
 	}
 	
 	public void prevURLBtn(View v) {
+		String preURL = currentURL;
+		String currentPageNo = currentPageNo(currentURL);
+		String[] stringSpliter,stringSpliter2,stringSpliter3;
+		int numberPage = 0;
 		
+		stringSpliter = currentURL.split("page/");
+		stringSpliter2 = stringSpliter[0].split("");
+		
+		stringSpliter3 = currentPageNo.split("/");
+		numberPage = Integer.valueOf(stringSpliter3[0]);
+		
+		if(numberPage > 1){
+			numberPage--;
+			
+			if(stringSpliter2[stringSpliter2.length - 1].equals("/") ){
+				preURL = stringSpliter[0] + "page/" + numberPage + "/";
+			}else{
+				preURL = stringSpliter[0] + "/page/" + numberPage + "/";
+			}
+		}
+		
+		currentURL = preURL;
+		saveURLValue();
+		
+		statusTxt.setText("Connecting to server...");
+		loadBoard.setVisibility(View.INVISIBLE);
+		loader.setVisibility(View.VISIBLE);
+		setScanLoadWFT();
 	}
 	
 	public void nextURLBtn(View v) {
+		String preURL = currentURL;
+		String currentPageNo = currentPageNo(currentURL);
+		String[] stringSpliter,stringSpliter2,stringSpliter3;
+		int numberPage = 0;
 		
+		stringSpliter = currentURL.split("page/");
+		stringSpliter2 = stringSpliter[0].split("");
+		
+		stringSpliter3 = currentPageNo.split("/");
+		numberPage = Integer.valueOf(stringSpliter3[0]);
+		
+		numberPage++;
+		
+		if(stringSpliter2[stringSpliter2.length - 1].equals("/") ){
+			preURL = stringSpliter[0] + "page/" + numberPage + "/";
+		}else{
+			preURL = stringSpliter[0] + "/page/" + numberPage + "/";
+		}
+		
+		currentURL = preURL;
+		saveURLValue();
+		
+		statusTxt.setText("Connecting to server...");
+		loadBoard.setVisibility(View.INVISIBLE);
+		loader.setVisibility(View.VISIBLE);
+		setScanLoadWFT();
 	}
 
+	public String currentPageNo(String url){
+		String pageNo = "1";
+		String[] stringSpliter;
+		
+		stringSpliter = url.split("/page/");
+		
+		if(stringSpliter.length>1){
+			pageNo = stringSpliter[stringSpliter.length - 1];
+		}
+		
+		return pageNo;
+	}
+	
 	public void newBlogBtn(View v) {
 		loadBoard.setVisibility(View.INVISIBLE);
 		mainMenu.setVisibility(View.VISIBLE);
@@ -280,8 +371,8 @@ public class MainActivity extends Activity {
 		/*TextView postTitle=new TextView(this);
 		TextView postLink=new TextView(this);
 		ImageView postImage=new ImageView(this);
-		loadPosts.removeAllViewsInLayout();
 		Bitmap bitmap = null;*/
+		loadPosts.removeAllViewsInLayout();
 		String postBGColor = "#ffffff";
 		String webViewHTMLs = "<!DOCTYPE html><html><head><title>Blog Images Only - Yuniz.com</title><style>img{border:0px;}</style></head><body style=\"margin:0px;padding:0px;\">";
 		
@@ -302,6 +393,11 @@ public class MainActivity extends Activity {
 			}
 			
 			tempImagesOut = imagesGroup.get(a);
+			
+			if(tempImagesOut.size()==0){
+				webViewHTMLs += "<div style=\"background-color:#ffffff;padding:15px 5px 15px 5px;\"><center>NO IMAGE FOUND</center></div>";
+			}
+
 			for(int b=0;b<tempImagesOut.size();b++){
 				//Log.v("--debug",tempImagesOut.get(b));
 				
@@ -355,7 +451,7 @@ public class MainActivity extends Activity {
 		contentWebView.getSettings().setJavaScriptEnabled(false);
 		contentWebView.getSettings().setPluginsEnabled(false);
 		contentWebView.getSettings().setLayoutAlgorithm(LayoutAlgorithm.SINGLE_COLUMN);
-		contentWebView.setBackgroundColor(Color.parseColor("#000000"));
+		//contentWebView.setBackgroundColor(Color.parseColor("#000000"));
 		loadPosts.addView(contentWebView,new LinearLayout.LayoutParams( 
 	            LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 		
