@@ -37,7 +37,7 @@
                 android:id="@+id/textView1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Blog Web Address :"
+                android:text="Wordpress Web Address :"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
 
             <EditText
@@ -45,8 +45,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="12"
-                android:text="http://bookofash.wordpress.com/"
-                android:hint="http://www.myblog.com"
+                android:text=""
+                android:hint="http://myblog.wordpress.com"
                 android:paddingTop="10dp" >
 
                 <requestFocus />
@@ -58,7 +58,15 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:onClick="loadURLBtn"
-                android:text="View Blog Images Only" />
+                android:text="Start New Blog" />
+            
+            <Button
+                android:id="@+id/button1a"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:onClick="loadOldURLBtn"
+                android:text="Continue From Previous" />
 
         </LinearLayout>
         
@@ -112,6 +120,7 @@
             android:layout_alignParentBottom="true"
             android:layout_toLeftOf="@+id/button4"
             android:layout_marginBottom="50dp"
+            android:onClick="prevURLBtn"
             android:text="Previous" />
 
         <Button
@@ -122,6 +131,7 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
             android:layout_marginBottom="50dp"
+            android:onClick="nextURLBtn"
             android:text="Next" />
         
     </RelativeLayout>  

@@ -27,6 +27,7 @@ import android.os.StrictMode;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -49,6 +50,8 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
+	public static final String PREFS_NAME = "YunizWPISaves";
+	
 	public int screenWidth = 0;
 	public int screenHeight = 0;
 	
@@ -66,6 +69,8 @@ public class MainActivity extends Activity {
 	
 	private WebView webView;
 	
+	int sdk = 0;
+	
 	Timer WFT = new Timer();
 	
 	@SuppressLint("NewApi")
@@ -75,7 +80,7 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		int sdk = android.os.Build.VERSION.SDK_INT;
+		sdk = android.os.Build.VERSION.SDK_INT;
 		
 		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 	    StrictMode.setThreadPolicy(policy);
@@ -143,6 +148,12 @@ public class MainActivity extends Activity {
 		if(urlString.length() == 0){
 			Toast.makeText(getApplicationContext(), "Please fill in the Blog Web Address to continue." , Toast.LENGTH_LONG).show();
 		}else{
+			if(currentURL.equals("gp")){
+				currentURL = "http://gutteruncensored.info/";
+			}
+			
+			saveURLValue();
+		
 			statusTxt.setText("Connecting to server...");
 			mainMenu.setVisibility(View.INVISIBLE);
 			loader.setVisibility(View.VISIBLE);
@@ -150,6 +161,27 @@ public class MainActivity extends Activity {
 		}
 	}
 	
+	public void loadOldURLBtn(View v) {
+		retriveURLValue();
+	
+		if(currentURL.length() == 0){
+			Toast.makeText(getApplicationContext(), "No previous wordpress web address found, please start with a new blog." , Toast.LENGTH_LONG).show();
+		}else{
+			statusTxt.setText("Connecting to server...");
+			mainMenu.setVisibility(View.INVISIBLE);
+			loader.setVisibility(View.VISIBLE);
+			setScanLoadWFT();
+		}
+	}
+	
+	public void prevURLBtn(View v) {
+		
+	}
+	
+	public void nextURLBtn(View v) {
+		
+	}
+
 	public void newBlogBtn(View v) {
 		loadBoard.setVisibility(View.INVISIBLE);
 		mainMenu.setVisibility(View.VISIBLE);
@@ -251,7 +283,7 @@ public class MainActivity extends Activity {
 		loadPosts.removeAllViewsInLayout();
 		Bitmap bitmap = null;*/
 		String postBGColor = "#ffffff";
-		String webViewHTMLs = "<html><head><title>Blog Images Only - Yuniz.com</title><style>.img{border:0px;}</style></head><body style=\"margin:0px;padding:0px;\">";
+		String webViewHTMLs = "<!DOCTYPE html><html><head><title>Blog Images Only - Yuniz.com</title><style>img{border:0px;}</style></head><body style=\"margin:0px;padding:0px;\">";
 		
 		for(int a=0;a<titles.size();a++){
 			//Log.v("debug",titles.get(a) + "|" + urls.get(a) + "|" + imagesGroup.get(a).size());
@@ -297,9 +329,9 @@ public class MainActivity extends Activity {
 				loadPosts.addView(postImage,new LinearLayout.LayoutParams( 
 			            LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));*/
 				
-				if(isImageFormat(tempImagesOut.get(b))){
-					webViewHTMLs += "<div style=\"background-color:" + postBGColor + ";padding:5px;\"><img src=\"" + tempImagesOut.get(b) + "\"></div>";
-				}
+				//if(isImageFormat(tempImagesOut.get(b))){
+				webViewHTMLs += "<div style=\"background-color:" + postBGColor + ";padding:5px;\"><img src=\"" + tempImagesOut.get(b) + "\"></div>";
+				//}
 			}
 			/*bitmap.recycle();
 			Runtime.getRuntime().gc();
@@ -318,8 +350,10 @@ public class MainActivity extends Activity {
 	
 		WebView contentWebView=new WebView(this);
 		contentWebView.setPadding(5, 5, 5, 5);
-		contentWebView.loadData(webViewHTMLs, "text/html", "UTF-8");
+		contentWebView.loadDataWithBaseURL(null,webViewHTMLs,"text/html","UTF-8","about:blank");
 		contentWebView.getSettings().setSupportZoom(false);
+		contentWebView.getSettings().setJavaScriptEnabled(false);
+		contentWebView.getSettings().setPluginsEnabled(false);
 		contentWebView.getSettings().setLayoutAlgorithm(LayoutAlgorithm.SINGLE_COLUMN);
 		contentWebView.setBackgroundColor(Color.parseColor("#000000"));
 		loadPosts.addView(contentWebView,new LinearLayout.LayoutParams( 
@@ -381,6 +415,19 @@ public class MainActivity extends Activity {
 		}
 
 		return cleanImageFile;
+	}
+	
+	public void saveURLValue(){
+		  SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+	      SharedPreferences.Editor editor = settings.edit();
+	      editor.putString("oldurl", currentURL);
+
+	      editor.commit();
+	}
+	
+	public void retriveURLValue(){
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		currentURL = settings.getString("oldurl", "");
 	}
 	
 	public void setScanLoadWFT() {
