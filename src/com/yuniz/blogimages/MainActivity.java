@@ -17,6 +17,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 
+import com.revmob.RevMob;
+import com.revmob.RevMobTestingMode;
+import com.revmob.ads.banner.RevMobBanner;
 import com.yuniz.blogimages.R;
 
 import android.R.string;
@@ -37,6 +40,7 @@ import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.WebSettings.LayoutAlgorithm;
 import android.webkit.WebView;
@@ -70,6 +74,8 @@ public class MainActivity extends Activity {
 	private String currentURL,pageCodes;
 	
 	private WebView webView;
+	
+	private RevMob revmob;
 	
 	int sdk = 0;
 	
@@ -158,6 +164,12 @@ public class MainActivity extends Activity {
 		if(!isNetworkAvailable()){
 			Toast.makeText(getApplicationContext(), "You need a smooth internet connection before you can use this app." , Toast.LENGTH_LONG).show();
 		}
+		
+		/*----RevMob Ads----*/
+		revmob = RevMob.start(this);
+//revmob.setTestingMode(RevMobTestingMode.WITH_ADS);
+		revmob.showFullscreen(this);
+        /*----RevMob Ads----*/
 	}
 
 	private boolean isNetworkAvailable() {
@@ -457,6 +469,8 @@ public class MainActivity extends Activity {
 		
 		loader.setVisibility(View.INVISIBLE);
 		loadBoard.setVisibility(View.VISIBLE);
+		
+		revmob.showPopup(this);
 	}
 	
 	public boolean isImageFormat(String filename){

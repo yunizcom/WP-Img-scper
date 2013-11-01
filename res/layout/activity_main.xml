@@ -169,7 +169,7 @@
 	        android:layout_alignParentLeft="true" 
 	        android:layout_alignParentBottom="true" 
 	        ads:adSize="SMART_BANNER" 
-	        ads:adUnitId="a15268ca278ce832" 
+	        ads:adUnitId="a1527398855ce75" 
 	        ads:loadAdOnCreate="true" > 
 	    </com.google.ads.AdView> 
     
