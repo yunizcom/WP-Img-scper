@@ -52,6 +52,15 @@
 
                 <requestFocus />
             </EditText>
+            
+            <TextView
+                android:id="@+id/textView1a"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="*Not all the blogs are supported."
+                android:gravity="center"
+                android:textColor="#ffffff"
+                android:textSize="10dp"/>
 
             <Button
                 android:id="@+id/button1"
@@ -66,7 +75,6 @@
                 android:layout_height="wrap_content"
                 android:onClick="loadOldURLBtn"
                 android:text="Continue From Previous" />
-
         </LinearLayout>
         
     </RelativeLayout>    
